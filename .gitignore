@@ -1,0 +1,15 @@
+# Dependency directories
+node_modules/
+npm-debug.log*
+
+# macOS
+.DS_Store
+
+# Editor directories and files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

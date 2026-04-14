@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      width: 300px; padding: 16px; margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #1e1e2e; color: #cdd6f4;
+    }
+    h2 { margin: 0 0 2px; font-size: 15px; color: #cba6f7; }
+    .subtitle { margin: 0 0 14px; font-size: 11px; color: #6c7086; }
+    .section { font-size: 10px; color: #6c7086; text-transform: uppercase; letter-spacing: .5px; margin: 10px 0 6px; }
+    .btn {
+      display: block; width: 100%; padding: 9px 10px; border: none;
+      border-radius: 8px; font-size: 13px; font-weight: 600;
+      cursor: pointer; margin-bottom: 6px; text-align: left;
+    }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+    #btnAIAll       { background: #cba6f7; color: #1e1e2e; }
+    #btnAIAll:hover:not(:disabled) { background: #b4befe; }
+    #btnCurrentWindow { background: #313244; color: #89b4fa; border: 1px solid #89b4fa; }
+    #btnCurrentWindow:hover:not(:disabled) { background: #3d3f54; }
+    #btnAllWindows    { background: #313244; color: #a6e3a1; border: 1px solid #a6e3a1; }
+    #btnAllWindows:hover:not(:disabled)    { background: #3d3f54; }
+    #btnUngroupAll  { background: #313244; color: #f38ba8; border: 1px solid #f38ba8; margin-top: 10px; }
+    #btnUngroupAll:hover:not(:disabled)  { background: #3d3f54; }
+
+    /* 진행 표시 */
+    #progressWrap {
+      display: none; margin: 10px 0;
+      background: #181825; border-radius: 10px; padding: 12px;
+      border: 1px solid #313244;
+    }
+    #progressHeader {
+      display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;
+    }
+    #progressLabel { font-size: 12px; color: #cdd6f4; font-weight: 600; }
+    #progressPct   { font-size: 20px; font-weight: 700; color: #cba6f7; }
+    #progressBar {
+      height: 8px; background: #313244; border-radius: 4px; overflow: hidden; margin-bottom: 6px;
+    }
+    #progressFill {
+      height: 100%; width: 0%;
+      background: linear-gradient(90deg, #cba6f7, #89b4fa);
+      transition: width .25s ease;
+      border-radius: 4px;
+      position: relative;
+    }
+    /* 반짝이는 shimmer 효과 */
+    #progressFill::after {
+      content: '';
+      position: absolute; top: 0; left: -60%; width: 60%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.25), transparent);
+      animation: shimmer 1.4s infinite;
+    }
+    @keyframes shimmer { to { left: 130%; } }
+    #progressSub  { font-size: 10px; color: #585b70; }
+    #progressFile { font-size: 10px; color: #45475a; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* 결과 */
+    #status {
+      display: none; margin-top: 10px; font-size: 11px;
+      color: #a6e3a1; white-space: pre-wrap; line-height: 1.7;
+      background: #181825; border-radius: 6px; padding: 8px;
+    }
+    #status.error { color: #f38ba8; }
+
+    .note { font-size: 10px; color: #45475a; margin-top: 8px; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <h2>🗂️ 탭 그룹 정리</h2>
+  <p class="subtitle">Gemma 4 E2B · WebGPU · 서버/API 키 불필요</p>
+
+  <div class="section">✨ AI 분류 (Gemma 4 E2B)</div>
+  <button class="btn" id="btnAIAll">🤖 AI로 모든 창 정리</button>
+  <p class="note">첫 실행 시 모델 다운로드(~500MB)가 필요합니다. 이후엔 브라우저 캐시에서 즉시 실행돼요.</p>
+
+  <div id="progressWrap">
+    <div id="progressHeader">
+      <span id="progressLabel">모델 다운로드 중...</span>
+      <span id="progressPct">0%</span>
+    </div>
+    <div id="progressBar"><div id="progressFill"></div></div>
+    <div id="progressSub">잠시만 기다려주세요 (첫 실행 시 1회만)</div>
+    <div id="progressFile"></div>
+  </div>
+
+  <div class="section" style="margin-top:14px">패턴 기반 (폴백)</div>
+  <button class="btn" id="btnCurrentWindow">🪟 현재 창만 정리</button>
+  <button class="btn" id="btnAllWindows">🌐 모든 창 정리</button>
+  <button class="btn" id="btnUngroupAll">✂️ 모든 탭 그룹 풀기</button>
+
+  <div id="status"></div>
+
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

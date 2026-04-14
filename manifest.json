@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Tab Organizer (Claude)",
+  "version": "4.1",
+  "description": "Gemma 4 E2B (WebGPU)로 탭을 자동 분류합니다. 서버·API 키 불필요.",
+  "permissions": [
+    "tabs",
+    "tabGroups",
+    "windows",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://huggingface.co/*",
+    "https://*.huggingface.co/*"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; connect-src 'self' https://huggingface.co https://*.huggingface.co"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "탭 그룹 정리"
+  }
+}
