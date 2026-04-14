@@ -66,7 +66,7 @@ export async function loadModel(onProgress) {
 }
 
 // ─── AI 탭 분류 ───────────────────────────────────────────────────
-export async function classifyTabsWithAI(tabs, onProgress) {
+export async function classifyTabsWithAI(tabs, onProgress, customCategories = []) {
   const generator = await loadModel(onProgress);
   onProgress(100, 'AI가 탭을 분석하는 중...', `${tabs.length}개 탭 분석 중`, '');
 
@@ -76,12 +76,37 @@ export async function classifyTabsWithAI(tabs, onProgress) {
 
   console.log(`[TabOrganizer AI] 분류 대상 탭 ${tabs.length}개:`);
   console.log(tabList);
+  if (customCategories.length > 0) {
+    console.log(`[TabOrganizer AI] 커스텀 카테고리: ${customCategories.join(', ')}`);
+  }
 
-  // ── pipeline의 chat template을 활용한 messages 형식 ──
-  const messages = [
-    {
-      role: 'user',
-      content: `You are a browser tab organizer. Look at the tabs below and group them by topic or purpose.
+  // ── 카테고리 지정 여부에 따라 프롬프트 분기 ──
+  let promptContent;
+
+  if (customCategories.length > 0) {
+    // 사용자 지정 카테고리 모드
+    const catList = customCategories.map(c => `- ${c}`).join('\n');
+    promptContent = `You are a browser tab organizer. Look at the tabs below and group them into the user's specified categories.
+
+Tabs:
+${tabList}
+
+User-specified categories:
+${catList}
+
+Instructions:
+- Use ONLY the category names listed above as group names. Do NOT create new categories.
+- If a tab doesn't clearly fit any of the specified categories, put its index in "ungrouped".
+- Give each group the exact Korean name the user specified.
+- Choose a color for each group: grey, blue, red, yellow, green, pink, purple, cyan, orange
+- Every tab index must appear exactly once — either in a group or in "ungrouped"
+- Return ONLY valid JSON. No explanation, no markdown, no code fences.
+
+JSON format:
+{"groups":[{"name":"그룹명","color":"색상","indices":[0,2,5]},...],\"ungrouped\":[1,3]}`;
+  } else {
+    // 기본 모드: AI 자율 결정
+    promptContent = `You are a browser tab organizer. Look at the tabs below and group them by topic or purpose.
 
 Tabs:
 ${tabList}
@@ -98,7 +123,14 @@ Instructions:
 - Return ONLY valid JSON. No explanation, no markdown, no code fences.
 
 JSON format:
-{"groups":[{"name":"그룹명","color":"색상","indices":[0,2,5]},...],\"ungrouped\":[1,3]}`
+{"groups":[{"name":"그룹명","color":"색상","indices":[0,2,5]},...],\"ungrouped\":[1,3]}`;
+  }
+
+  // ── pipeline의 chat template을 활용한 messages 형식 ──
+  const messages = [
+    {
+      role: 'user',
+      content: promptContent
     }
   ];
 

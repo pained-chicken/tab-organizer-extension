@@ -14,7 +14,8 @@ Chrome 확장 프로그램 (MV3). Gemma 4 E2B ONNX + Transformers.js + WebGPU로
 main
  ├── fix/ai-model-integration  ✅ main에 머지 완료
  ├── feat/error-handling-ux    🔵 커밋 완료, 미머지 (사용자 검증 후 머지 예정)
- └── feat/popup-redesign       🔵 커밋 완료, 미머지 (사용자 검증 후 머지 예정)
+ ├── feat/popup-redesign       🔵 커밋 완료, 미머지 (사용자 검증 후 머지 예정)
+ └── feat/custom-categories    🔵 커밋 완료, 미머지 (사용자 검증 후 머지 예정)
 ```
 
 ## 파일 구조 및 역할
@@ -60,6 +61,12 @@ main
 - AI 그룹 결과를 색상 칩으로 시각화
 - 아이콘 3종 추가 (icons/icon16/48/128.png)
 - manifest.json 버전 4.1 → 4.2
+
+### Branch 4: `feat/custom-categories` (🔵 미머지)
+- AI 분류 시 사용자 커스텀 카테고리 입력 기능 추가
+- popup.html: 토글식 카테고리 입력 패널 (접기/펼치기 애니메이션)
+- popup.js: 토글 로직 + localStorage 저장/복원 + classifyTabsWithAI에 카테고리 전달
+- ai_classifier.js: customCategories 파라미터 추가, 프롬프트 분기 (지정 모드 vs 자율 모드)
 
 ## 미완료 / 다음 할 일
 

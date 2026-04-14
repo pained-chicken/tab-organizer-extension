@@ -24,6 +24,11 @@ const domainBar   = document.getElementById('domainBar');
 // 테마 토글
 const themeToggle = document.getElementById('themeToggle');
 
+// 커스텀 카테고리
+const customCatToggle = document.getElementById('customCatToggle');
+const customCatPanel  = document.getElementById('customCatPanel');
+const customCatInput  = document.getElementById('customCategories');
+
 // ─── 테마 관리 (3-3) ────────────────────────────────────────────
 const savedTheme = localStorage.getItem('tab-organizer-theme') ?? 'dark';
 document.documentElement.dataset.theme = savedTheme;
@@ -35,6 +40,29 @@ themeToggle.addEventListener('click', () => {
   themeToggle.textContent = next === 'dark' ? '🌙' : '☀️';
   localStorage.setItem('tab-organizer-theme', next);
 });
+
+// ─── 커스텀 카테고리 토글 + 저장 ─────────────────────────────
+const savedCategories = localStorage.getItem('tab-organizer-categories') ?? '';
+customCatInput.value = savedCategories;
+
+customCatToggle.addEventListener('click', () => {
+  customCatToggle.classList.toggle('open');
+  customCatPanel.classList.toggle('open');
+  if (customCatPanel.classList.contains('open')) {
+    customCatInput.focus();
+  }
+});
+
+// 입력 변경 시 localStorage에 저장
+customCatInput.addEventListener('input', () => {
+  localStorage.setItem('tab-organizer-categories', customCatInput.value);
+});
+
+// 이전에 값이 있었으면 패널 열린 상태로 복원
+if (savedCategories.trim()) {
+  customCatToggle.classList.add('open');
+  customCatPanel.classList.add('open');
+}
 
 // ─── 탭 요약 (3-1) ────────────────────────────────────────────────
 // tabGroups chrome API의 색상명 → CSS 색상 매핑
@@ -196,9 +224,15 @@ document.getElementById('btnAIAll').addEventListener('click', async () => {
   const startTime = performance.now();
 
   try {
+    // 커스텀 카테고리 파싱 (쉼표 구분, 빈 문자열 제거)
+    const customCategories = customCatInput.value
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
+
     const results = await withTimeout(
       organizeAllWindowsWithAI(
-        (tabs) => classifyTabsWithAI(tabs, (pct, label, sub, file) => setProgress(pct, label, sub, file))
+        (tabs) => classifyTabsWithAI(tabs, (pct, label, sub, file) => setProgress(pct, label, sub, file), customCategories)
       )
     );
     hideProgress();
