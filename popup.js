@@ -29,6 +29,9 @@ const customCatToggle = document.getElementById('customCatToggle');
 const customCatPanel  = document.getElementById('customCatPanel');
 const customCatInput  = document.getElementById('customCategories');
 
+// 창별 번호 옵션
+const chkNumberDup = document.getElementById('chkNumberDup');
+
 // ─── 테마 관리 (3-3) ────────────────────────────────────────────
 const savedTheme = localStorage.getItem('tab-organizer-theme') ?? 'dark';
 document.documentElement.dataset.theme = savedTheme;
@@ -63,6 +66,12 @@ if (savedCategories.trim()) {
   customCatToggle.classList.add('open');
   customCatPanel.classList.add('open');
 }
+
+// ─── 창별 번호 체크박스 저장/복원 ────────────────────────
+chkNumberDup.checked = localStorage.getItem('tab-organizer-number-dup') === 'true';
+chkNumberDup.addEventListener('change', () => {
+  localStorage.setItem('tab-organizer-number-dup', chkNumberDup.checked);
+});
 
 // ─── 탭 요약 (3-1) ────────────────────────────────────────────────
 // tabGroups chrome API의 색상명 → CSS 색상 매핑
@@ -232,7 +241,8 @@ document.getElementById('btnAIAll').addEventListener('click', async () => {
 
     const results = await withTimeout(
       organizeAllWindowsWithAI(
-        (tabs) => classifyTabsWithAI(tabs, (pct, label, sub, file) => setProgress(pct, label, sub, file), customCategories)
+        (tabs) => classifyTabsWithAI(tabs, (pct, label, sub, file) => setProgress(pct, label, sub, file), customCategories),
+        chkNumberDup.checked
       )
     );
     hideProgress();

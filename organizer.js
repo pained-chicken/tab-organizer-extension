@@ -40,13 +40,42 @@ export async function organizeWindowWithAI(windowId, classifyFn) {
 }
 
 // ─── AI 기반 정리 (모든 창) ───────────────────────────────────────
-export async function organizeAllWindowsWithAI(classifyFn) {
+export async function organizeAllWindowsWithAI(classifyFn, numberDuplicates = false) {
   const windows = await chrome.windows.getAll({ windowTypes: ['normal'] });
   const all = [];
   for (const win of windows) {
     all.push(`── 창 #${win.id} ──`);
     all.push(...await organizeWindowWithAI(win.id, classifyFn));
   }
+
+  // 창별 번호 붙이기: 같은 이름이 다른 창에 있으면 뒤에 번호 추가
+  if (numberDuplicates && windows.length > 1) {
+    try {
+      const allGroups = await chrome.tabGroups.query({});
+
+      // 그룹을 이름별로 분류
+      const titleMap = {};
+      for (const g of allGroups) {
+        if (!titleMap[g.title]) titleMap[g.title] = [];
+        titleMap[g.title].push(g);
+      }
+
+      // 같은 이름이 2개 이상 다른 창에 있으면 번호 부여
+      for (const [title, groups] of Object.entries(titleMap)) {
+        const uniqueWindows = new Set(groups.map(g => g.windowId));
+        if (uniqueWindows.size > 1) {
+          let counter = 1;
+          for (const g of groups) {
+            await chrome.tabGroups.update(g.id, { title: `${title} ${counter}` });
+            counter++;
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('[TabOrganizer] 창별 번호 붙이기 실패:', e);
+    }
+  }
+
   return all;
 }
 

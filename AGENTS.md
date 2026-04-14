@@ -16,6 +16,7 @@ main
  ├── feat/error-handling-ux    🔵 커밋 완료, 미머지 (사용자 검증 후 머지 예정)
  ├── feat/popup-redesign       🔵 커밋 완료, 미머지 (사용자 검증 후 머지 예정)
  └── feat/custom-categories    🔵 커밋 완료, 미머지 (사용자 검증 후 머지 예정)
+ └── feat/window-numbering     🔵 커밋 완료, 미머지 (사용자 검증 후 머지 예정)
 ```
 
 ## 파일 구조 및 역할
@@ -67,6 +68,12 @@ main
 - popup.html: 토글식 카테고리 입력 패널 (접기/펼치기 애니메이션)
 - popup.js: 토글 로직 + localStorage 저장/복원 + classifyTabsWithAI에 카테고리 전달
 - ai_classifier.js: customCategories 파라미터 추가, 프롬프트 분기 (지정 모드 vs 자율 모드)
+
+### Branch 5: `feat/window-numbering` (🔵 미머지)
+- 여러 창에 같은 이름의 그룹이 있을 때 뒤에 번호를 붙여 구분하는 옵션 추가
+- popup.html: 체크박스 UI (🔢 창별 번호 붙이기) + CSS 스타일
+- popup.js: 체크박스 상태 localStorage 저장/복원 + organizeAllWindowsWithAI에 플래그 전달
+- organizer.js: 후처리 방식으로 chrome.tabGroups.query() → 중복 이름 감지 → 번호 부여
 
 ## 미완료 / 다음 할 일
 

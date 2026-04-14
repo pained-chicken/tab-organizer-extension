@@ -268,6 +268,26 @@
       margin-top: 5px; line-height: 1.4;
     }
 
+    /* ── AI 옵션 체크박스 ─────────────────────────────────────── */
+    .ai-option {
+      display: flex; align-items: center; gap: 7px;
+      padding: 6px 12px; margin: 0 16px 6px;
+      font-size: 11px; color: var(--text-dim);
+      cursor: pointer; user-select: none;
+      border-radius: 7px;
+      transition: background .15s;
+    }
+    .ai-option:hover { background: var(--surface); }
+    .ai-option input[type="checkbox"] {
+      width: 14px; height: 14px; margin: 0;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+    .ai-option-label { font-weight: 500; }
+    .ai-option-desc {
+      font-size: 10px; color: var(--text-muted); margin-left: auto;
+    }
+
     /* ── 하단 여백 ────────────────────────────────────────── */
     .footer { height: 14px; }
 
@@ -336,6 +356,13 @@
       <div class="custom-cat-hint">쉼표(,)로 구분 · 비우면 AI가 자유롭게 결정</div>
     </div>
   </div>
+
+  <!-- 창별 번호 옵션 -->
+  <label class="ai-option" id="numberDupOption">
+    <input type="checkbox" id="chkNumberDup">
+    <span class="ai-option-label">🔢 창별 번호 붙이기</span>
+    <span class="ai-option-desc">같은 이름 구분</span>
+  </label>
 
   <div class="btn-wrap">
     <button class="btn" id="btnAIAll">
