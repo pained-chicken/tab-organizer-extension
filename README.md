@@ -1,32 +1,47 @@
 # Tab Organizer (AI WebGPU 기반)
 
-이 확장 프로그램은 **브라우저 안에서 직접 동작(Local)**하는 소형 웹 AI 모델을 활용하여, 어지럽게 열려있는 크롬 탭들을 주제에 맞게 **자동으로 그룹화**해주는 Chrome 확장 프로그램입니다.
+브라우저에 열린 탭을 AI가 자동으로 카테고리별 탭 그룹으로 묶어주는 Chrome 확장 프로그램입니다. Manifest V3 기반으로 동작합니다.
 
-## ✨ 주요 특징
-* **완전한 로컬 동작**: 외부 서버 통신이나 유료 API 키(OpenAI 등)가 전혀 필요하지 않습니다. 사용자의 방문 기록이 외부로 유출되지 않으며 프라이버시가 완벽히 보장됩니다.
-* **WebGPU 가속**: `@huggingface/transformers.js`와 WebGPU를 활용하여 브라우저에서 모델(Gemma-4-E2B-IT-ONNX)을 빠르고 부드럽게 추론합니다.
-* **유연한 AI 분류**: 정해진 고정 카테고리가 아니라, 현재 열려있는 탭들의 실제 내용을 바탕으로 AI가 스스로 적절한 그룹 이름, 색상 및 갯수를 판단합니다.
-* **비상용 패턴 기반 정리**: GPU 가속 환경을 사용할 수 없거나 빠르게 정리하고 싶을 때 즉시 사용할 수 있는 '키워드 패턴 기반' 정리 기능도 제공합니다.
+## ✨ 프로젝트 개요
+브라우저에 열린 탭들을 한눈에 보기 쉽게 관리하기 위해 기획되었습니다. 로컬에서 실행되는 소형 AI 모델을 사용해 현재 열려있는 탭들의 내용을 바탕으로 AI가 스스로 적절한 탭 그룹을 생성하여 정리합니다.
 
 ## 🛠 기술 스택
-* Vanilla JavaScript (HTML, CSS)
-* [Transformers.js](https://huggingface.co/docs/transformers.js) (Hugging Face)
-* Chrome Extension Manifest V3
+- Vanilla JavaScript (HTML, CSS)
+- **Transformers.js**: 로컬 환경에서 실행하기 위해 548KB 크기로 최소화된 로컬 번들 파일(`./transformers.min.js`) 포함
+- **Gemma 4 E2B ONNX**: WebGPU를 통해 실행되며 HuggingFace에서 다운로드하여 사용
+  - 모델 ID: `onnx-community/Gemma-4-E2B-IT-ONNX`
+  - dtype: `q4f16`
+- **완전 로컬 실행**: 외부 서버 통신이나 API 키(OpenAI 등) 없음. 브라우저 내에서 완전 로컬로 실행
 
-## 🚀 수동 설치 가이드 (개발자 모드)
-크롬 웹 스토어에 정식 출시되기 전, 로컬에서 직접 설치해서 사용하는 방법입니다.
+## 📂 파일 구조
+```
+tab-organizer-extension/
+├── manifest.json        # MV3, permissions: tabs/tabGroups/windows/storage
+├── popup.html           # UI (progress bar, 버튼 3개)
+├── popup.js             # ES module, 버튼 핸들러
+├── ai_classifier.js     # Transformers.js 모델 로드 + 추론
+├── organizer.js         # chrome.tabs/tabGroups API로 그룹 생성
+└── transformers.min.js  # Transformers.js 로컬 번들 (548KB)
+```
 
-1. 우측 상단의 `Code` 버튼을 눌러 프로젝트를 다운로드(ZIP) 하거나 원격 저장소에서 Clone 합니다.
-2. 다운로드 된 압축 파일을 풉니다.
-3. 크롬 브라우저를 열고 주소창에 `chrome://extensions/` 를 복사하여 이동합니다.
-4. 화면 우측 상단의 **'개발자 모드 (Developer mode)'** 스위치를 켭니다.
-5. 죄측 최상단에 나타난 **'압축해제된 확장 프로그램을 로드합니다 (Load unpacked)'** 버튼을 클릭합니다.
-6. 다운로드 받은 폴더를 통째로 선택합니다.
-7. 브라우저 주소창 옆의 '퍼즐 모양' 아이콘을 클릭하여 표시된 `Tab Organizer`를 툴바에 고정하여 사용합니다.
+## 🔘 팝업 버튼 구성
+1. **🤖 AI로 모든 창 정리** → Gemma 4 E2B 모델로 동적 분류 후 그룹 생성
+2. **🪟 현재 창만 정리**    → 하드코딩 패턴 기반 폴백
+3. **🌐 모든 창 정리**      → 하드코딩 패턴 기반 폴백
+4. **✂️ 모든 탭 그룹 풀기** → 모든 창의 그룹 해제
 
-## 💡 사용 방법
-* **AI 기반 전체 정리**: 확장 프로그램 버튼을 누르고 AI 정리를 실행하면, 모델이 현재 창의 탭 제목과 URL을 종합적으로 분석해 한눈에 보기 좋게 그룹으로 묶어줍니다. (⚠️ 최초 실행 시 AI 모델 파일의 다운로드가 백그라운드 진행되므로 시간이 다소 소요될 수 있습니다. 이후부터는 캐시되어 가볍게 동작합니다.)
-* **현재 창 / 패턴 정리**: AI를 사용하지 않고도, 자체적으로 등록된 주요 공부 및 설정 관련 키워드(예: 코딩테스트, 백준, 크롬 등)를 찾아 빠르게 탭을 묶어줍니다.
+## 🧠 AI 분류 흐름
+1. `classifyTabsWithAI(tabs)` 호출
+2. Gemma 4 모델에 탭 목록(제목 + 도메인) 전달
+3. AI가 적절한 분석을 통해 그룹 수, 이름, 색상, 포함될 탭 인덱스를 JSON 형태로 자유롭게 결정
+4. `organizeWindowWithAI()` 함수가 Chrome API(`chrome.tabs`, `chrome.tabGroups`)를 사용하여 탭 그룹 생성
 
-## 📌 주의 / 참고 사항
-* AI 기능을 정상적으로 사용하려면 Chrome 113 버전 이상 및 시스템의 **WebGPU 지원**이 활성화된 환경이 필요합니다. 최신 macOS 및 Windows 환경에서는 대부분 기본으로 사용 가능합니다.
+## 🚧 TODO (테스트 및 개발 예정 사항)
+- AI 버튼 클릭 시 콘솔에 `"[TabOrganizer AI] 원본 응답:"` 로그가 찍히는지 확인 필요 (AI의 실제 실행 여부 검증)
+- 모델 ID(`onnx-community/Gemma-4-E2B-IT-ONNX`)가 정확한지 확인 필요 (이름이 틀릴 경우 모델 로드 에러 발생)
+- 초기 모델 파일 다운로드 시 나오는 progress bar 동작 확인 필요
+
+## 📌 알려진 문제 및 제약사항 (Known Issues)
+- **CSP 문제**: 확장 프로그램의 특성상 CSP 이슈로 인해 CDN `import`가 불가능하여 `transformers.min.js`를 로컬에 직접 포함하는 방식으로 전환하여 해결
+- **ES Module**: `popup.js`, `ai_classifier.js`, `organizer.js` 스크립트 모두 ES module (`type="module"`) 형태로 사용
+- **HTTP 외 탭 제외**: `chrome://`, `file://` 등 `http`/`https` 기반이 아닌 탭은 AI 분류 대상에서 자동으로 제외됨
