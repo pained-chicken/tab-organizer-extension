@@ -1,6 +1,7 @@
 import { classifyTabsWithAI }                                  from './ai_classifier.js';
 import { organizeWindow, organizeAllWindows,
-         organizeAllWindowsWithAI, ungroupAllWindows }         from './organizer.js';
+         organizeAllWindowsWithAI, ungroupAllWindows,
+         applyWindowNumbering } from './organizer.js';
 
 // ─── DOM 요소 ─────────────────────────────────────────────────────
 const statusEl      = document.getElementById('status');
@@ -275,6 +276,9 @@ document.getElementById('btnCurrentWindow').addEventListener('click', async () =
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     const results = await organizeWindow(tab.windowId);
+    if (chkNumberDup.checked) {
+      await applyWindowNumbering(results);
+    }
     const elapsed = formatElapsed(performance.now() - startTime);
     setResultChips([`✅ 패턴 기반 정리 완료 (${elapsed})`, ...results]);
   } catch (e) { setStatus('❌ ' + e.message, true); }

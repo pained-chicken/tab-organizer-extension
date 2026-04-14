@@ -40,28 +40,41 @@ export async function organizeWindowWithAI(windowId, classifyFn) {
 }
 
 // ─── 창별 번호 옵션 ──────────────────────────────────────────────
-async function applyWindowNumbering() {
+export async function applyWindowNumbering(resultsArray = null) {
   try {
-    const windows = await chrome.windows.getAll({ windowTypes: ['normal'] });
-    if (windows.length <= 1) return;
-
     const allGroups = await chrome.tabGroups.query({});
+    if (allGroups.length <= 1) return;
+
     const titleMap = {};
     for (const g of allGroups) {
-      if (!titleMap[g.title]) titleMap[g.title] = [];
-      titleMap[g.title].push(g);
+      if (!g.title) continue;
+      // 이미 붙은 번호가 있다면 제거하고 기본 이름만 추출 (예: "AI - 1" -> "AI")
+      const baseTitle = g.title.replace(/\s*-\s*\d+$/, '');
+      if (!titleMap[baseTitle]) titleMap[baseTitle] = [];
+      titleMap[baseTitle].push(g);
     }
 
-    // 같은 이름이 2개 이상 다른 창에 있으면 번호 부여
-    for (const [title, groups] of Object.entries(titleMap)) {
-      const uniqueWindows = new Set(groups.map(g => g.windowId));
-      if (uniqueWindows.size > 1) {
+    let updatedCount = 0;
+    // 같은 기본 이름이 2개 이상이면 창에 상관없이 번호 부여
+    for (const [baseTitle, groups] of Object.entries(titleMap)) {
+      if (groups.length > 1) {
         let counter = 1;
         for (const g of groups) {
-          await chrome.tabGroups.update(g.id, { title: `${title} - ${counter}` });
+          const newTitle = `${baseTitle} - ${counter}`;
+          if (g.title !== newTitle) {
+            await chrome.tabGroups.update(g.id, { title: newTitle });
+            updatedCount++;
+          }
           counter++;
         }
+      } else if (groups.length === 1 && groups[0].title !== baseTitle) {
+         // 원래 2개였다가 1개가 된 경우 번호 제거 (선택적)
+         await chrome.tabGroups.update(groups[0].id, { title: baseTitle });
       }
+    }
+    
+    if (updatedCount > 0 && resultsArray) {
+      resultsArray.push(`🔄 이름 중복 방지: ${updatedCount}개 그룹에 번호 추가됨`);
     }
   } catch (e) {
     console.warn('[TabOrganizer] 창별 번호 붙이기 실패:', e);
@@ -78,7 +91,7 @@ export async function organizeAllWindowsWithAI(classifyFn, numberDuplicates = fa
   }
 
   if (numberDuplicates) {
-    await applyWindowNumbering();
+    await applyWindowNumbering(all);
   }
 
   return all;
@@ -159,7 +172,7 @@ export async function organizeAllWindows(numberDuplicates = false) {
   }
 
   if (numberDuplicates) {
-    await applyWindowNumbering();
+    await applyWindowNumbering(all);
   }
 
   return all;
