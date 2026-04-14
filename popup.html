@@ -219,6 +219,55 @@
     }
     #status.error { color: var(--red); }
 
+    /* ── 커스텀 카테고리 패널 ─────────────────────────────── */
+    .custom-cat-toggle {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 7px 12px; margin: 0 16px 6px;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 8px; cursor: pointer;
+      transition: background .15s, border-color .15s;
+    }
+    .custom-cat-toggle:hover { background: var(--surface); }
+    .custom-cat-toggle-left {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11px; font-weight: 600; color: var(--text-dim);
+    }
+    .custom-cat-toggle-arrow {
+      font-size: 10px; color: var(--text-muted);
+      transition: transform .2s ease;
+    }
+    .custom-cat-toggle.open .custom-cat-toggle-arrow {
+      transform: rotate(180deg);
+    }
+
+    .custom-cat-panel {
+      max-height: 0; overflow: hidden; opacity: 0;
+      transition: max-height .25s ease, opacity .2s ease, margin .2s ease;
+      margin: 0 16px;
+    }
+    .custom-cat-panel.open {
+      max-height: 120px; opacity: 1;
+      margin: 0 16px 6px;
+    }
+    .custom-cat-inner {
+      padding: 8px 10px;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    #customCategories {
+      width: 100%; padding: 7px 10px;
+      background: var(--surface); color: var(--text);
+      border: 1px solid var(--border); border-radius: 6px;
+      font-size: 12px; font-family: inherit;
+      outline: none; transition: border-color .15s;
+    }
+    #customCategories::placeholder { color: var(--text-muted); }
+    #customCategories:focus { border-color: var(--accent); }
+    .custom-cat-hint {
+      font-size: 10px; color: var(--text-muted);
+      margin-top: 5px; line-height: 1.4;
+    }
+
     /* ── 하단 여백 ────────────────────────────────────────── */
     .footer { height: 14px; }
 
@@ -270,6 +319,24 @@
 
   <!-- ── AI 정리 버튼 ───────────────────────────────────────── -->
   <div class="section">✨ AI 분류 (Gemma 4 E2B)</div>
+
+  <!-- 커스텀 카테고리 토글 -->
+  <div class="custom-cat-toggle" id="customCatToggle">
+    <div class="custom-cat-toggle-left">
+      <span>🏷️</span>
+      <span>카테고리 지정 (선택)</span>
+    </div>
+    <span class="custom-cat-toggle-arrow">▼</span>
+  </div>
+  <div class="custom-cat-panel" id="customCatPanel">
+    <div class="custom-cat-inner">
+      <input type="text" id="customCategories"
+             placeholder="예: 개발, 쇼핑, 유튜브, 공부"
+             autocomplete="off" spellcheck="false">
+      <div class="custom-cat-hint">쉼표(,)로 구분 · 비우면 AI가 자유롭게 결정</div>
+    </div>
+  </div>
+
   <div class="btn-wrap">
     <button class="btn" id="btnAIAll">
       <span class="btn-icon">🤖</span>
