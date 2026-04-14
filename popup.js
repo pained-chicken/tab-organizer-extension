@@ -285,7 +285,7 @@ document.getElementById('btnAllWindows').addEventListener('click', async () => {
   lockBtns();
   const startTime = performance.now();
   try {
-    const results = await organizeAllWindows();
+    const results = await organizeAllWindows(chkNumberDup.checked);
     const elapsed = formatElapsed(performance.now() - startTime);
     setResultChips([`✅ 패턴 기반 정리 완료 (${elapsed})`, ...results]);
   } catch (e) { setStatus('❌ ' + e.message, true); }
