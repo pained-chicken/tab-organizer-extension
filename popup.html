@@ -1,83 +1,287 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko" data-theme="dark">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tab Organizer</title>
   <style>
-    * { box-sizing: border-box; }
-    body {
-      width: 300px; padding: 16px; margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #1e1e2e; color: #cdd6f4;
+    /* ── 디자인 토큰 ─────────────────────────────────────── */
+    :root {
+      --bg:           #1e1e2e;
+      --bg2:          #181825;
+      --surface:      #313244;
+      --surface2:     #3d3f54;
+      --border:       #45475a;
+      --text:         #cdd6f4;
+      --text-dim:     #a6adc8;
+      --text-muted:   #6c7086;
+      --accent:       #cba6f7;
+      --accent2:      #89b4fa;
+      --green:        #a6e3a1;
+      --red:          #f38ba8;
+      --yellow:       #f9e2af;
+      --shadow:       0 4px 24px rgba(0,0,0,.45);
     }
-    h2 { margin: 0 0 2px; font-size: 15px; color: #cba6f7; }
-    .subtitle { margin: 0 0 14px; font-size: 11px; color: #6c7086; }
-    .section { font-size: 10px; color: #6c7086; text-transform: uppercase; letter-spacing: .5px; margin: 10px 0 6px; }
-    .btn {
-      display: block; width: 100%; padding: 9px 10px; border: none;
-      border-radius: 8px; font-size: 13px; font-weight: 600;
-      cursor: pointer; margin-bottom: 6px; text-align: left;
+    [data-theme="light"] {
+      --bg:           #eff1f5;
+      --bg2:          #e6e9ef;
+      --surface:      #dce0e8;
+      --surface2:     #ccd0da;
+      --border:       #bcc0cc;
+      --text:         #4c4f69;
+      --text-dim:     #5c5f77;
+      --text-muted:   #8c8fa1;
+      --accent:       #8839ef;
+      --accent2:      #1e66f5;
+      --green:        #40a02b;
+      --red:          #d20f39;
+      --yellow:       #df8e1d;
+      --shadow:       0 4px 24px rgba(0,0,0,.12);
     }
-    .btn:disabled { opacity: .45; cursor: not-allowed; }
-    #btnAIAll       { background: #cba6f7; color: #1e1e2e; }
-    #btnAIAll:hover:not(:disabled) { background: #b4befe; }
-    #btnCurrentWindow { background: #313244; color: #89b4fa; border: 1px solid #89b4fa; }
-    #btnCurrentWindow:hover:not(:disabled) { background: #3d3f54; }
-    #btnAllWindows    { background: #313244; color: #a6e3a1; border: 1px solid #a6e3a1; }
-    #btnAllWindows:hover:not(:disabled)    { background: #3d3f54; }
-    #btnUngroupAll  { background: #313244; color: #f38ba8; border: 1px solid #f38ba8; margin-top: 10px; }
-    #btnUngroupAll:hover:not(:disabled)  { background: #3d3f54; }
 
-    /* 진행 표시 */
+    /* ── 기본 레이아웃 ────────────────────────────────────── */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      width: 340px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 13px;
+      transition: background .2s, color .2s;
+    }
+
+    /* ── 헤더 ─────────────────────────────────────────────── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .header-left { display: flex; align-items: center; gap: 8px; }
+    .header-icon {
+      width: 28px; height: 28px; border-radius: 7px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px;
+    }
+    .header-title { font-size: 14px; font-weight: 700; color: var(--text); }
+    .header-sub   { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
+
+    /* 테마 토글 버튼 */
+    #themeToggle {
+      width: 32px; height: 32px; border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 15px;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s, border-color .15s;
+    }
+    #themeToggle:hover { background: var(--surface2); }
+
+    /* ── 탭 요약 카드 ─────────────────────────────────────── */
+    .summary-card {
+      margin: 12px 16px 0;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+    .summary-label {
+      font-size: 10px; font-weight: 600;
+      color: var(--text-muted); text-transform: uppercase;
+      letter-spacing: .6px; margin-bottom: 8px;
+    }
+    .summary-stats {
+      display: flex; gap: 6px; flex-wrap: wrap;
+    }
+    .stat-chip {
+      display: flex; align-items: center; gap: 4px;
+      padding: 3px 8px;
+      border-radius: 20px;
+      background: var(--surface);
+      font-size: 11px; color: var(--text-dim);
+      border: 1px solid var(--border);
+    }
+    .stat-chip .num { font-weight: 700; color: var(--accent); }
+    .stat-chip.windows .num { color: var(--accent2); }
+
+    /* 도메인 미니 바 */
+    .domain-bar {
+      margin-top: 8px;
+      display: flex; gap: 2px; height: 4px; border-radius: 4px; overflow: hidden;
+    }
+    .domain-bar-seg { border-radius: 4px; transition: flex .3s; }
+
+    /* ── 섹션 헤더 ────────────────────────────────────────── */
+    .section {
+      padding: 12px 16px 6px;
+      font-size: 10px; font-weight: 600;
+      color: var(--text-muted); text-transform: uppercase; letter-spacing: .6px;
+    }
+
+    /* ── 버튼 ─────────────────────────────────────────────── */
+    .btn-wrap { padding: 0 16px; display: flex; flex-direction: column; gap: 6px; }
+
+    .btn {
+      display: flex; align-items: center; gap: 8px;
+      width: 100%; padding: 10px 12px;
+      border: none; border-radius: 9px;
+      font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: background .15s, transform .08s, opacity .15s;
+      text-align: left;
+    }
+    .btn:active:not(:disabled) { transform: scale(.98); }
+    .btn:disabled { opacity: .4; cursor: not-allowed; }
+    .btn-icon { font-size: 16px; flex-shrink: 0; }
+    .btn-text {}
+    .btn-desc { font-size: 10px; font-weight: 400; color: inherit; opacity: .7; display: block; margin-top: 1px; }
+
+    #btnAIAll {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: var(--bg); padding: 12px;
+    }
+    #btnAIAll:hover:not(:disabled) { filter: brightness(1.1); }
+    #btnAIAll .btn-desc { color: var(--bg); opacity: .75; }
+
+    #btnCurrentWindow, #btnAllWindows {
+      background: var(--surface); color: var(--text-dim);
+      border: 1px solid var(--border);
+    }
+    #btnCurrentWindow:hover:not(:disabled),
+    #btnAllWindows:hover:not(:disabled) { background: var(--surface2); color: var(--text); }
+
+    #btnUngroupAll {
+      background: var(--surface); color: var(--red);
+      border: 1px solid var(--red); opacity: .85;
+    }
+    #btnUngroupAll:hover:not(:disabled) { background: var(--surface2); opacity: 1; }
+
+    /* ── 프로그레스 바 ────────────────────────────────────── */
     #progressWrap {
-      display: none; margin: 10px 0;
-      background: #181825; border-radius: 10px; padding: 12px;
-      border: 1px solid #313244;
+      display: none; margin: 10px 16px 0;
+      background: var(--bg2); border-radius: 10px; padding: 12px;
+      border: 1px solid var(--border);
     }
     #progressHeader {
       display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;
     }
-    #progressLabel { font-size: 12px; color: #cdd6f4; font-weight: 600; }
-    #progressPct   { font-size: 20px; font-weight: 700; color: #cba6f7; }
-    #progressBar {
-      height: 8px; background: #313244; border-radius: 4px; overflow: hidden; margin-bottom: 6px;
-    }
-    #progressFill {
+    #progressLabel { font-size: 12px; color: var(--text); font-weight: 600; }
+    #progressPct   { font-size: 20px; font-weight: 700; color: var(--accent); }
+    #progressBar   { height: 6px; background: var(--surface); border-radius: 4px; overflow: hidden; margin-bottom: 6px; }
+    #progressFill  {
       height: 100%; width: 0%;
-      background: linear-gradient(90deg, #cba6f7, #89b4fa);
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
       transition: width .25s ease;
-      border-radius: 4px;
-      position: relative;
+      border-radius: 4px; position: relative;
     }
-    /* 반짝이는 shimmer 효과 */
     #progressFill::after {
-      content: '';
-      position: absolute; top: 0; left: -60%; width: 60%; height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,.25), transparent);
+      content: ''; position: absolute; top: 0; left: -60%; width: 60%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.28), transparent);
       animation: shimmer 1.4s infinite;
     }
     @keyframes shimmer { to { left: 130%; } }
-    #progressSub  { font-size: 10px; color: #585b70; }
-    #progressFile { font-size: 10px; color: #45475a; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    #progressSub  { font-size: 10px; color: var(--text-muted); }
+    #progressFile { font-size: 10px; color: var(--border); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    /* 결과 */
-    #status {
-      display: none; margin-top: 10px; font-size: 11px;
-      color: #a6e3a1; white-space: pre-wrap; line-height: 1.7;
-      background: #181825; border-radius: 6px; padding: 8px;
+    /* ── 결과 패널 ────────────────────────────────────────── */
+    #resultWrap {
+      display: none; margin: 10px 16px 0;
     }
-    #status.error { color: #f38ba8; }
+    .result-label {
+      font-size: 10px; font-weight: 600;
+      color: var(--text-muted); text-transform: uppercase;
+      letter-spacing: .6px; margin-bottom: 6px;
+    }
+    /* 그룹 결과 칩들 (3-4: 색상 시각화) */
+    #groupChips { display: flex; flex-direction: column; gap: 4px; }
+    .group-chip {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 10px; border-radius: 8px;
+      background: var(--bg2); border: 1px solid var(--border);
+      font-size: 12px;
+    }
+    .color-dot {
+      width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0;
+    }
+    .chip-name { font-weight: 600; color: var(--text); flex: 1; }
+    .chip-count { font-size: 11px; color: var(--text-muted); }
 
-    .note { font-size: 10px; color: #45475a; margin-top: 8px; line-height: 1.5; }
+    /* 일반 텍스트 상태 (에러 / 기타) */
+    #status {
+      display: none; margin: 10px 16px 0;
+      font-size: 11px; color: var(--green);
+      white-space: pre-wrap; line-height: 1.7;
+      background: var(--bg2); border-radius: 8px; padding: 10px 12px;
+      border: 1px solid var(--border);
+    }
+    #status.error { color: var(--red); }
+
+    /* ── 하단 여백 ────────────────────────────────────────── */
+    .footer { height: 14px; }
+
+    /* ── 구분선 ───────────────────────────────────────────── */
+    .divider { height: 1px; background: var(--border); margin: 10px 16px 0; }
+
+    /* ── 모델 다운로드 안내 ───────────────────────────────── */
+    .note {
+      font-size: 10px; color: var(--text-muted); line-height: 1.5;
+      margin: 4px 16px 0; padding: 6px 10px;
+      background: var(--bg2); border-radius: 7px;
+      border: 1px solid var(--border);
+    }
   </style>
 </head>
 <body>
-  <h2>🗂️ 탭 그룹 정리</h2>
-  <p class="subtitle">Gemma 4 E2B · WebGPU · 서버/API 키 불필요</p>
 
+  <!-- ── 헤더 ──────────────────────────────────────────────── -->
+  <div class="header">
+    <div class="header-left">
+      <div class="header-icon">🗂️</div>
+      <div>
+        <div class="header-title">Tab Organizer</div>
+        <div class="header-sub">Gemma 4 E2B · WebGPU · 로컬 실행</div>
+      </div>
+    </div>
+    <button id="themeToggle" title="다크/라이트 모드 전환">🌙</button>
+  </div>
+
+  <!-- ── 탭 요약 카드 ───────────────────────────────────────── -->
+  <div class="summary-card">
+    <div class="summary-label">현재 현황</div>
+    <div class="summary-stats">
+      <div class="stat-chip">
+        <span>탭</span><span class="num" id="statTabs">—</span>
+      </div>
+      <div class="stat-chip windows">
+        <span>창</span><span class="num" id="statWindows">—</span>
+      </div>
+      <div class="stat-chip">
+        <span>그룹</span><span class="num" id="statGroups">—</span>
+      </div>
+      <div class="stat-chip">
+        <span>도메인</span><span class="num" id="statDomains">—</span>
+      </div>
+    </div>
+    <div class="domain-bar" id="domainBar"></div>
+  </div>
+
+  <!-- ── AI 정리 버튼 ───────────────────────────────────────── -->
   <div class="section">✨ AI 분류 (Gemma 4 E2B)</div>
-  <button class="btn" id="btnAIAll">🤖 AI로 모든 창 정리</button>
-  <p class="note">첫 실행 시 모델 다운로드(~500MB)가 필요합니다. 이후엔 브라우저 캐시에서 즉시 실행돼요.</p>
+  <div class="btn-wrap">
+    <button class="btn" id="btnAIAll">
+      <span class="btn-icon">🤖</span>
+      <span class="btn-text">
+        AI로 모든 창 정리
+        <span class="btn-desc">모델이 직접 그룹 이름·수·색상 결정</span>
+      </span>
+    </button>
+  </div>
+  <p class="note">💡 첫 실행 시 모델 다운로드(약 500MB)가 필요합니다. 이후엔 캐시에서 즉시 실행.</p>
 
+  <!-- ── 진행 바 ─────────────────────────────────────────────── -->
   <div id="progressWrap">
     <div id="progressHeader">
       <span id="progressLabel">모델 다운로드 중...</span>
@@ -88,12 +292,50 @@
     <div id="progressFile"></div>
   </div>
 
-  <div class="section" style="margin-top:14px">패턴 기반 (폴백)</div>
-  <button class="btn" id="btnCurrentWindow">🪟 현재 창만 정리</button>
-  <button class="btn" id="btnAllWindows">🌐 모든 창 정리</button>
-  <button class="btn" id="btnUngroupAll">✂️ 모든 탭 그룹 풀기</button>
+  <div class="divider"></div>
 
+  <!-- ── 패턴 기반 버튼 ─────────────────────────────────────── -->
+  <div class="section">패턴 기반 (폴백)</div>
+  <div class="btn-wrap">
+    <button class="btn" id="btnCurrentWindow">
+      <span class="btn-icon">🪟</span>
+      <span class="btn-text">
+        현재 창만 정리
+        <span class="btn-desc">8개 카테고리 패턴 매칭</span>
+      </span>
+    </button>
+    <button class="btn" id="btnAllWindows">
+      <span class="btn-icon">🌐</span>
+      <span class="btn-text">
+        모든 창 정리
+        <span class="btn-desc">모든 창에 패턴 기반 그룹 적용</span>
+      </span>
+    </button>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ── 해제 버튼 ──────────────────────────────────────────── -->
+  <div class="btn-wrap" style="margin-top:10px;">
+    <button class="btn" id="btnUngroupAll">
+      <span class="btn-icon">✂️</span>
+      <span class="btn-text">
+        모든 탭 그룹 풀기
+        <span class="btn-desc">모든 창의 탭 그룹 해제</span>
+      </span>
+    </button>
+  </div>
+
+  <!-- ── 그룹 결과 시각화 ───────────────────────────────────── -->
+  <div id="resultWrap">
+    <div class="result-label">결과</div>
+    <div id="groupChips"></div>
+  </div>
+
+  <!-- ── 일반 상태 메시지 (에러 등) ─────────────────────────── -->
   <div id="status"></div>
+
+  <div class="footer"></div>
 
   <script type="module" src="popup.js"></script>
 </body>
