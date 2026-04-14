@@ -12,6 +12,14 @@ export async function organizeWindowWithAI(windowId, classifyFn) {
   const validTabs = tabs.filter(t => t.url?.startsWith('http'));
   const skipped   = tabs.filter(t => !t.url?.startsWith('http'));
 
+  // 2-1: http 탭이 0개일 때 빈 결과 에러 방지
+  if (validTabs.length === 0) {
+    const results = ['ℹ️ 분류 가능한 탭이 없습니다 (http/https 탭 0개)'];
+    if (skipped.length > 0)
+      results.push(`⚠️ 스킵(chrome:// 등): ${skipped.length}개`);
+    return results;
+  }
+
   const classified = await classifyFn(validTabs);
 
   await clearGroups(tabs);
@@ -43,19 +51,50 @@ export async function organizeAllWindowsWithAI(classifyFn) {
 }
 
 // ─── 패턴 기반 정리 (폴백) ────────────────────────────────────────
+// 2-3: 패턴 기반 카테고리 확장 (2개 → 8개)
 const FALLBACK_GROUPS = [
   {
-    name: '📚 코딩 공부', color: 'yellow',
-    pattern: /카카오테크|카카오|엘리스|elice|알고리즘|algorithm|프로그래머스|programmers|코딩테스트|파이썬|python|PCCP|백엔드|greedy|leetcode|백준/i
+    name: '💻 개발', color: 'yellow',
+    pattern: /github|gitlab|bitbucket|stackoverflow|stack overflow|vscode|developer|개발|코딩|coding|api|documentation|docs|npm|pypi|docker|terraform/i
   },
   {
-    name: '🔵 Chrome & 도구', color: 'blue',
-    pattern: /chrome|크롬|claude|gemini|experiments|웹 스토어|web store|탭 관리|웹 앱 사용/i
+    name: '📚 학습', color: 'cyan',
+    pattern: /카카오테크|카카오|엘리스|elice|알고리즘|algorithm|프로그래머스|programmers|코딩테스트|파이썬|python|PCCP|백엔드|greedy|leetcode|백준|udemy|coursera|inflearn|인프런|강의|lecture|tutorial|학습/i
+  },
+  {
+    name: '🤖 AI', color: 'purple',
+    pattern: /claude|chatgpt|openai|gemini|bard|huggingface|hugging face|copilot|ai|artificial|machine learning|deep learning|llm|gpt/i
+  },
+  {
+    name: '🔵 구글', color: 'blue',
+    pattern: /google\.com|gmail|drive\.google|docs\.google|sheets\.google|calendar\.google|maps\.google|구글|google cloud|firebase/i
+  },
+  {
+    name: '🎬 미디어', color: 'red',
+    pattern: /youtube|youtu\.be|netflix|twitch|spotify|music|video|vimeo|유튜브|넷플릭스|트위치|음악/i
+  },
+  {
+    name: '🛒 쇼핑', color: 'green',
+    pattern: /amazon|coupang|쿠팡|gmarket|11번가|naver\.shopping|shopping|shop|store|쇼핑|mall|배달|baemin|yogiyo/i
+  },
+  {
+    name: '📰 뉴스·SNS', color: 'orange',
+    pattern: /news|뉴스|reddit|twitter|x\.com|instagram|facebook|linkedin|naver\.com\/news|tistory|velog|medium|blog|블로그/i
+  },
+  {
+    name: '🔧 Chrome·도구', color: 'grey',
+    pattern: /chrome|크롬|extensions|experiments|웹 스토어|web store|탭 관리|웹 앱 사용|설정|settings/i
   }
 ];
 
 export async function organizeWindow(windowId) {
   const tabs = await chrome.tabs.query({ windowId });
+
+  // 2-1: 탭이 없는 경우 방어
+  if (tabs.length === 0) {
+    return ['ℹ️ 이 창에 탭이 없습니다.'];
+  }
+
   const buckets = Object.fromEntries(FALLBACK_GROUPS.map(g => [g.name, { ...g, tabIds: [] }]));
   const ungrouped = [];
 

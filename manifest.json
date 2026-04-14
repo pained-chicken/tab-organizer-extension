@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Tab Organizer (Claude)",
+  "name": "Tab Organizer",
   "version": "4.1",
   "description": "Gemma 4 E2B (WebGPU)로 탭을 자동 분류합니다. 서버·API 키 불필요.",
   "permissions": [
